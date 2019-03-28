@@ -4,7 +4,8 @@ body {
     /* width: 600px; */
     margin-right: 20px;
     margin-left: 20px;
-    font-family: Helvetica 
+    font-family: Roboto, 'Helvetica Neue', Helvetica, Arial, sans-seif;
+    font-weight: 300;
 }
 
 div#header {
@@ -16,8 +17,9 @@ div#header {
 div#logo a {
     color: black;
     float: left;
-    font-size: 18px;
-    font-weight: bold;
+    font-size: 26px;
+    font-style: italic;
+    font-weight: 400;
     text-decoration: none;
 }
 
@@ -28,7 +30,8 @@ div#header #navigation {
 div#header #navigation a {
     color: black;
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 400;
+    font-style: italic;
     margin-left: 12px;
     text-decoration: none;
     text-transform: uppercase;
@@ -45,14 +48,20 @@ div#footer {
 
 h1 {
     font-size: 24px;
+    font-weight: 500;
 }
 
 h2 {
     font-size: 20px;
+    font-weight: 500;
 }
 
 div.info {
     color: #555;
     font-size: 14px;
     font-style: italic;
+}
+
+strong {
+  font-weight: 350;
 }
