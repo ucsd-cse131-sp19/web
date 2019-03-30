@@ -4,7 +4,7 @@ title: Grades
 
 - **Class Participation (5%)** :
   Involves answering questions with the clicker.
-  Register your clicker on Gradescope
+  Register your clicker [here](https://forms.gle/b3spPthsv6LWPDga8)
 
 - **(Seven) Homework Assignments (30%)** :
   They may be **done in pairs**; they will be assigned at
