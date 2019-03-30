@@ -10,4 +10,4 @@ atomic units over the entire quarter. By *atomic* I mean, for example, that
 
 - [HW #0][hw0-git], due Fri 4/12 by 23:59pm
 
-[hw0-git]: localhost:8000
+[hw0-git]: https://github.com/ucsd-cse131-sp19/pa0
