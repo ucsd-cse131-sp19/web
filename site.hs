@@ -4,8 +4,7 @@ import           Data.Monoid (mappend)
 import           Hakyll
 
 
-topLevelMD = [ "staff.md"
-             , "grades.md"
+topLevelMD = [ "grades.md"
              , "lectures.md"
              , "assignments.md"
              , "resources.md"

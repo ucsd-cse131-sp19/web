@@ -11,6 +11,14 @@ our target language, and making the required additions to the compiler
 and language runtime to implement them. This course draws on your knowledge
 from Computer Organization and Programming Langauges.
 
+## Administrivia
+
+- Instructor: Alexander Bakst
+- TA: Rami Gökhan Kıcı
+- Lecture: EBU3B 2154, Tuesday & Thursday 12:30pm - 1:50pm
+- Calendar: [Google Calendar](https://calendar.google.com/calendar/b/1?cid=ZW5nLnVjc2QuZWR1X2U0Z2dqaHBoNm1lZWJjZzFxNTUxZm5xMjk0QGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20)
+- Office Hours: See calendar or by appointment
+
 ## Diversity and Inclusion
 
 We are committed to fostering a learning environment for
