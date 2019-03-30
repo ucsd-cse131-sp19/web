@@ -14,7 +14,7 @@ title: Grades
   hours 59 minutes and 59 seconds past a deadline.
 
 - **Midterm (30%)** :
-  Will be held on **Thursday April 9th, in lecture**.
+  Will be held on **Thursday May 9th, in lecture**.
   The midterm is **closed book**, but you may use a
   double-sided **"cheat sheet"**.
 
