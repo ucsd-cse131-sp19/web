@@ -11,6 +11,14 @@ topLevelMD = [ "staff.md"
              , "resources.md"
              , "index.md"
              ]
+
+crunchWithCtx ctx = do
+  route   $ setExtension "html"
+  compile $ pandocCompiler
+            >>= loadAndApplyTemplate "templates/page.html"    ctx
+            >>= loadAndApplyTemplate "templates/default.html" ctx 
+            >>= relativizeUrls
+
 --------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
