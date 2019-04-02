@@ -19,7 +19,7 @@ from Computer Organization and Programming Langauges.
 - TA: Rami Gökhan Kıcı
 - Lecture: EBU3B 2154, Tuesday & Thursday 12:30pm - 1:50pm
 - Office Hours: See [calendar](/calendar.html) or by appointment
-- Piazza: [here](piazza.com/eng.ucsd.edu/spring2019/cse131/home)
+- Piazza: [here](http://piazza.com/eng.ucsd.edu/spring2019/cse131/home)
 
 ## Diversity and Inclusion
 
