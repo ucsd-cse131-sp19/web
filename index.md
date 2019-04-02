@@ -14,6 +14,8 @@ from Computer Organization and Programming Langauges.
 ## Administrivia
 
 - Instructor: Alexander Bakst
+  - E-Mail: abakst@eng.ucsd.edu
+  - Office: EBU3B 3124
 - TA: Rami Gökhan Kıcı
 - Lecture: EBU3B 2154, Tuesday & Thursday 12:30pm - 1:50pm
 - Office Hours: See [calendar](/calendar.html) or by appointment
