@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Hello, world!</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">CSE 131</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+		<a href="../calendar.html">Calendar</a>
+                <a href="../grades.html">Grades</a>
+                <a href="../assignments.html">Assignments</a>
+                <a href="../lectures.html">Lectures</a>
+                <a href="../resources.html">Resources</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Hello, world!</h1>
+
+            <h2 id="what-is-a-compiler">What <em>is</em> a Compiler?</h2>
+<p>A function that maps an <em>input</em> string to an <em>output</em> string.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">compiler ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span></a></code></pre></div>
+<p>Typically, the <em>input</em> and <em>output</em> strings are <em>“programs”</em></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1"><span class="ot">compiler ::</span> <span class="dt">SourceProgram</span> <span class="ot">-&gt;</span> <span class="dt">TargetProgram</span></a></code></pre></div>
+<p>For example, here are some well-known <em>compilers</em></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" title="1">gcc,<span class="ot"> clang ::</span> <span class="dt">C</span>          <span class="ot">-&gt;</span> <span class="dt">Binary</span>          <span class="co">-- a.out, .exe</span></a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="ot">ghc        ::</span> <span class="dt">Haskell</span>    <span class="ot">-&gt;</span> <span class="dt">Binary</span>                 </a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="ot">javac      ::</span> <span class="dt">Java</span>       <span class="ot">-&gt;</span> <span class="dt">JvmByteCode</span>     <span class="co">-- .class</span></a>
+<a class="sourceLine" id="cb3-4" title="4"><span class="ot">scalac     ::</span> <span class="dt">Scala</span>      <span class="ot">-&gt;</span> <span class="dt">JvmByteCode</span>      </a>
+<a class="sourceLine" id="cb3-5" title="5"><span class="ot">ocamlc     ::</span> <span class="dt">Ocaml</span>      <span class="ot">-&gt;</span> <span class="dt">OcamlByteCode</span>   <span class="co">-- .cmo</span></a>
+<a class="sourceLine" id="cb3-6" title="6"><span class="ot">ocamlopt   ::</span> <span class="dt">Ocaml</span>      <span class="ot">-&gt;</span> <span class="dt">Binary</span>               </a>
+<a class="sourceLine" id="cb3-7" title="7"><span class="ot">gwt        ::</span> <span class="dt">Java</span>       <span class="ot">-&gt;</span> <span class="dt">JavaScript</span>      <span class="co">-- .js</span></a>
+<a class="sourceLine" id="cb3-8" title="8"><span class="ot">v8         ::</span> <span class="dt">JavaScript</span> <span class="ot">-&gt;</span> <span class="dt">Binary</span></a>
+<a class="sourceLine" id="cb3-9" title="9"><span class="ot">nasm       ::</span> <span class="dt">X86</span>        <span class="ot">-&gt;</span> <span class="dt">Binary</span>    </a>
+<a class="sourceLine" id="cb3-10" title="10"><span class="ot">pdftex     ::</span> <span class="dt">LaTeX</span>      <span class="ot">-&gt;</span> <span class="dt">PDF</span></a>
+<a class="sourceLine" id="cb3-11" title="11"><span class="ot">pandoc     ::</span> <span class="dt">Markdown</span>   <span class="ot">-&gt;</span> <span class="dt">PDF</span> <span class="fu">|</span> <span class="dt">Html</span> <span class="fu">|</span> <span class="dt">Doc</span>  </a></code></pre></div>
+<p>Key Requirements on output program:</p>
+<ol type="1">
+<li>Has the <em>same meaning</em> (“semantics”) as input,</li>
+<li>Is <em>executable</em> in relevant <em>context</em> (VM, microprocessor, web browser).</li>
+</ol>
+<h3 id="a-bit-of-history">A Bit of History</h3>
+<p>Compilers were invented to <a href="http://worrydream.com/dbx/">avoid writing machine code by hand</a></p>
+<figure>
+<img src="../static/img/binary-soap-fortran.png" alt="From Binary to FORTRAN" /><figcaption>From Binary to FORTRAN</figcaption>
+</figure>
+<p>Richard Hamming – The Art of Doing Science and Engineering, p25:</p>
+<blockquote>
+<p>In the beginning we programmed in absolute binary… Finally, a Symbolic Assembly Program was devised – after more years than you are apt to believe during which most programmers continued their heroic absolute binary programming. At the time [the assembler] first appeared I would guess about 1% of the older programmers were interested in it – using [assembly] was “sissy stuff”, and a real programmer would not stoop to wasting machine capacity to do the assembly.</p>
+</blockquote>
+<p>John A.N. Lee, Dept of Computer Science, Virginia Polytechnical Institute</p>
+<blockquote>
+<p>One of von Neumann’s students at Princeton recalled that graduate students were being used to hand assemble programs into binary for their early machine. This student took time out to build an assembler, but when von Neumann found out about it he was very angry, saying that it was a waste of a valuable scientific computing instrument to use it to do clerical work.</p>
+</blockquote>
+<h3 id="what-does-a-compiler-look-like">What does a Compiler <em>look like</em>?</h3>
+<figure>
+<img src="../static/img/compiler-pipeline.png" alt="Compiler Pipeline" /><figcaption>Compiler Pipeline</figcaption>
+</figure>
+<p>An input source program is converted to an executable binary in many stages:</p>
+<ul>
+<li><strong>Parsed</strong> into a data structure called an <strong>Abstract Syntax Tree</strong></li>
+<li><strong>Checked</strong> to make sure code is well-formed (and well-typed)</li>
+<li><strong>Simplified</strong> into some convenient <strong>Intermediate Representation</strong></li>
+<li><strong>Optimized</strong> into (equivalent) but faster program</li>
+<li><strong>Generated</strong> into assembly <code>x86</code></li>
+<li><strong>Linked</strong> against a run-time (usually written in C)</li>
+</ul>
+<h3 id="what-is-cse-131">What is CSE 131 ?</h3>
+<ul>
+<li><p>A <em>bridge</em> between two worlds</p>
+<ul>
+<li><em>High-level:</em> ML (<strong>CSE 130</strong>)</li>
+<li><em>Machine Code:</em> X86/ARM (<strong>CSE 30</strong>)</li>
+</ul></li>
+</ul>
+<p>A sequel to both those classes.</p>
+<ul>
+<li><p>How to write <strong>a compiler</strong> for <code>NanoML -&gt; X86</code></p>
+<ol type="1">
+<li>Parsing</li>
+<li>Checking &amp; Validation</li>
+<li>Simplification &amp; Normalizing</li>
+<li>Optimization</li>
+<li>Code Generation</li>
+</ol></li>
+<li><p>But also, how to write <strong>complex programs</strong></p>
+<ol type="1">
+<li>Design</li>
+<li>Implement</li>
+<li>Test</li>
+<li><strong>Iterate</strong></li>
+</ol></li>
+</ul>
+<h3 id="how-write-a-compiler">How write a Compiler?</h3>
+<p>General recipe, applies to any large system</p>
+<ul>
+<li><em>gradually, one feature at a time!</em></li>
+</ul>
+<p>We will</p>
+<ul>
+<li><strong>Step 1</strong> Start with a teeny tiny language,</li>
+<li><strong>Step 2</strong> Build a full compiler for it,</li>
+<li><strong>Step 3</strong> Add a few features,</li>
+<li><strong>Go to</strong> Step 2.</li>
+</ul>
+<p>(Yes, loops forever, but we will hit Ctrl-C in 10 weeks…)</p>
+<h2 id="course-outline">Course Outline</h2>
+<h2 id="what-will-we-do">What will <em>we do</em> ?</h2>
+<p>Write <strong>a compiler</strong> for <code>NanoML -&gt; X86</code></p>
+<p>But Rome wasn’t built in a day … and neither is any serious software.</p>
+<figure>
+<img src="../static/img/Eiffel.jpg" alt="Rome wasn’t built in a day" /><figcaption>Rome wasn’t built in a day</figcaption>
+</figure>
+<p>So we will write <em>many</em> compilers:</p>
+<ul>
+<li>Numbers and increment/decrement</li>
+<li>Local Variables</li>
+<li>Nested Binary Operations</li>
+<li>Booleans, Branches and Dynamic Types</li>
+<li>Functions</li>
+<li>Tuples and Structures</li>
+<li>Lambdas and closures</li>
+<li>Types and Inference</li>
+<li>Garbage Collection</li>
+</ul>
+<h2 id="what-will-you-learn">What will <em>you learn</em> ?</h2>
+<p><strong>Core principles of compiler construction</strong></p>
+<ul>
+<li>Managing Stacks &amp; Heap</li>
+<li>Type Checking</li>
+<li>Intermediate forms</li>
+<li>Optimization</li>
+</ul>
+<p><strong>Several new languages</strong></p>
+<ul>
+<li><code>Haskell</code> to write the compiler</li>
+<li><code>C</code> to write the “run-time”</li>
+<li><code>X86</code> compilation target</li>
+</ul>
+<p><strong><em>More importantly</em> how to write a large program</strong></p>
+<ul>
+<li>How to use types for design</li>
+<li>How to add new features / refactor</li>
+<li>How to test &amp; validate</li>
+</ul>
+<h2 id="what-do-you-need-to-know">What do you <em>need to know</em> ?</h2>
+<p>This 131 <strong>depends very heavily</strong> on CSE 130</p>
+<ul>
+<li>Familiarity with Functional Programming and Ocaml</li>
+<li>Datatypes (e.g. Lists, Trees, ADTs)</li>
+<li>Polymorphism</li>
+<li>Recursion</li>
+<li>HOFs (e.g. <code>map</code>, <code>filter</code>, <code>fold</code>)</li>
+</ul>
+<p>Also <strong>depends on</strong> CSE 30</p>
+<ul>
+<li>Experience with some <code>C</code> programming</li>
+<li>Experience with some assembly (<code>x86</code>)</li>
+</ul>
+<h3 id="a-few-words-on-the-medium-of-instruction">A few words on the medium of instruction</h3>
+<p>We will use <a href="https://haskell-lang.org/">Haskell</a> which, for our purposes is like Ocaml but with nicer syntax.</p>
+<p>Haskell has many advanced features beyond what we saw in 130, but we won’t be using them; in the few cases we do, I’ll explain them as we go.</p>
+<p>Here are some links to get you started:</p>
+<ul>
+<li><a href="http://science.raphael.poss.name/haskell-for-ocaml-programmers.html">Haskell for Ocaml Programmers</a></li>
+<li><a href="https://www.haskell.org/hoogle/">Hoogle: Type-based API Search</a></li>
+</ul>
+<h3 id="lets-go">Lets Go!</h3>
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
