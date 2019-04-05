@@ -14,7 +14,7 @@ topLevelMD = [ "grades.md"
 crunchWithCtx ctx = do
   route   $ setExtension "html"
   compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/page.html"    ctx
+            -- >>= loadAndApplyTemplate "templates/page.html"    ctx
             >>= loadAndApplyTemplate "templates/default.html" ctx 
             >>= relativizeUrls
 
@@ -24,6 +24,9 @@ main = hakyll $ do
     match "images/*" $ do
         route   idRoute
         compile copyFileCompiler
+    match "static/*/*" $ do route idRoute
+                            compile copyFileCompiler
+    match "lectures/*" $ crunchWithCtx postCtx
 
     match "css/*" $ do
         route   idRoute
