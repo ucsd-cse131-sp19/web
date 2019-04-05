@@ -7,7 +7,8 @@ title: Grades
   Register your clicker [here](https://forms.gle/b3spPthsv6LWPDga8)
 
 - **(Seven) Homework Assignments (30%)** :
-  They may be **done in pairs**; they will be assigned at
+  They may be **done in pairs** (except for the first two assignments); 
+  they will be assigned at
   the rate of one per week. You have a total of *four late days*
   that you can use throughout the quarter as you need them,
   where a late day means anything between 1 second and 23

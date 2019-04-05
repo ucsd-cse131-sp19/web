@@ -8,6 +8,7 @@ topLevelMD = [ "grades.md"
              , "lectures.md"
              , "assignments.md"
              , "resources.md"
+             , "calendar.md"
              , "index.md"
              ]
 
