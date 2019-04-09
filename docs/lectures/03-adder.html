@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Numbers, Unary Operations, Variables</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">CSE 131</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+		<a href="../calendar.html">Calendar</a>
+                <a href="../grades.html">Grades</a>
+                <a href="../assignments.html">Assignments</a>
+                <a href="../lectures.html">Lectures</a>
+                <a href="../resources.html">Resources</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Numbers, Unary Operations, Variables</h1>
+
+            <h2 id="lets-write-a-compiler">Lets Write a Compiler!</h2>
+<p>Our goal is to write a compiler which is a function:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">compiler ::</span> <span class="dt">SourceProgram</span> <span class="ot">-&gt;</span> <span class="dt">TargetProgram</span></a></code></pre></div>
+<p>In 131 <code>TargetProgram</code> is going to be a binary executable.</p>
+<h2 id="lets-write-our-first-compilers">Lets write our first Compilers</h2>
+<p><code>SourceProgram</code> will be a sequence of four <em>tiny</em> “languages”</p>
+<ol type="1">
+<li>Numbers</li>
+</ol>
+<ul>
+<li>e.g. <code>7</code>, <code>12</code>, <code>42</code> …</li>
+</ul>
+<ol start="2" type="1">
+<li>Numbers + Increment</li>
+</ol>
+<ul>
+<li>e.g. <code>add1(7)</code>, <code>add1(add1(12))</code>, …</li>
+</ul>
+<ol start="3" type="1">
+<li>Numbers + Increment + Decrement</li>
+</ol>
+<ul>
+<li>e.g. <code>add1(7)</code>, <code>add1(add1(12))</code>, <code>sub1(add1(42))</code></li>
+</ul>
+<ol start="4" type="1">
+<li>Numbers + Increment + Decrement + Local Variables</li>
+</ol>
+<ul>
+<li>e.g. <code>let x = add1(7), y = add1(x) in add1(y)</code></li>
+</ul>
+<h3 id="recall-what-does-a-compiler-look-like">Recall: What does a Compiler <em>look like</em>?</h3>
+<figure>
+<img src="../static/img/compiler-pipeline.png" alt="Compiler Pipeline" /><figcaption>Compiler Pipeline</figcaption>
+</figure>
+<p>An input source program is converted to an executable binary in many stages:</p>
+<ul>
+<li><strong>Parsed</strong> into a data structure called an <strong>Abstract Syntax Tree</strong></li>
+<li><strong>Checked</strong> to make sure code is well-formed (and well-typed)</li>
+<li><strong>Simplified</strong> into some convenient <strong>Intermediate Representation</strong></li>
+<li><strong>Optimized</strong> into (equivalent) but faster program</li>
+<li><strong>Generated</strong> into assembly <code>x86</code></li>
+<li><strong>Linked</strong> against a run-time (usually written in C)</li>
+</ul>
+<h3 id="simplified-pipeline">Simplified Pipeline</h3>
+<p><strong>Goal:</strong> Compile <em>source</em> into <em>executable</em> that, when run, <strong>prints</strong> the result of evaluating the source.</p>
+<p><strong>Approach:</strong> Lets figure out how to write</p>
+<ol type="1">
+<li>A <strong>compiler</strong> from the input <em>string</em> into <em>assembly</em>,</li>
+<li>A <strong>run-time</strong> that will let us do the printing.</li>
+</ol>
+<figure>
+<img src="../static/img/compiler-pipeline-1-2.png" alt="Simplified Compiler Pipeline with Runtime" /><figcaption>Simplified Compiler Pipeline with Runtime</figcaption>
+</figure>
+<p>Next, lets see how to do (1) and (2) using our sequence of <code>adder</code> languages.</p>
+<h1 id="adder-1">Adder-1</h1>
+<ol type="1">
+<li>Numbers</li>
+</ol>
+<ul>
+<li>e.g. <code>7</code>, <code>12</code>, <code>42</code> …</li>
+</ul>
+<h2 id="the-run-time">The “Run-time”</h2>
+<p>Lets work <em>backwards</em> and start with the run-time.</p>
+<p>Here’s what it looks like as a <code>C</code> program <code>main.c</code></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb2-1" title="1"><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></a>
+<a class="sourceLine" id="cb2-2" title="2"></a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="kw">extern</span> <span class="dt">int</span> our_code() asm(<span class="st">&quot;our_code_label&quot;</span>);</a>
+<a class="sourceLine" id="cb2-4" title="4"></a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span>** argv) {</a>
+<a class="sourceLine" id="cb2-6" title="6">  <span class="dt">int</span> result = our_code();</a>
+<a class="sourceLine" id="cb2-7" title="7">  printf(<span class="st">&quot;%d</span><span class="sc">\n</span><span class="st">&quot;</span>, result);</a>
+<a class="sourceLine" id="cb2-8" title="8">  <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb2-9" title="9">}</a></code></pre></div>
+<ul>
+<li><code>main</code> just calls <code>our_code</code> and prints its return value,</li>
+<li><code>our_code</code> is (to be) implemented in assembly,
+<ul>
+<li>Starting at <strong>label</strong> <code>our_code_label</code>,</li>
+<li>With the desired <em>return</em> value stored in register <code>EAX</code></li>
+<li>per, the <code>C</code> <a href="http://www.cs.virginia.edu/~evans/cs216/guides/x86.html">calling convention</a></li>
+</ul></li>
+</ul>
+<h3 id="test-systems-in-isolation">Test Systems in Isolation</h3>
+<p><strong>Key idea in SW-Engg:</strong></p>
+<blockquote>
+<p>Decouple systems so you can test one component without (even implementing) another.</p>
+</blockquote>
+<p>Lets test our “run-time” without even building the compiler.</p>
+<h3 id="testing-the-runtime-a-really-simple-example">Testing the Runtime: A Really Simple Example</h3>
+<p>Given a <code>SourceProgram</code></p>
+<pre><code>42</code></pre>
+<p>We <em>want to</em> compile the above into an assembly file <code>forty_two.s</code> that looks like:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode asm"><code class="sourceCode fasm"><a class="sourceLine" id="cb4-1" title="1"><span class="bu">section</span> .text</a>
+<a class="sourceLine" id="cb4-2" title="2">global our_code_label</a>
+<a class="sourceLine" id="cb4-3" title="3"><span class="fu">our_code_label:</span></a>
+<a class="sourceLine" id="cb4-4" title="4">  <span class="bu">mov</span> <span class="kw">eax</span>, <span class="dv">42</span></a>
+<a class="sourceLine" id="cb4-5" title="5">  <span class="bu">ret</span></a></code></pre></div>
+<p>For now, lets just</p>
+<ul>
+<li><em>write</em> that file by hand, and test to ensure</li>
+<li><em>object-generation</em> and then</li>
+<li><em>linking</em> works</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" title="1">$ <span class="fu">nasm</span> -f aout -o forty_two.o forty_two.s</a>
+<a class="sourceLine" id="cb5-2" title="2">$ <span class="fu">clang</span> -g -m32 -o forty_two.run forty_two.o main.c</a></code></pre></div>
+<p>On a Mac use <code>-f macho</code> instead of <code>-f aout</code></p>
+<p>We can now run it:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" title="1">$ <span class="ex">forty_two.run</span></a>
+<a class="sourceLine" id="cb6-2" title="2"><span class="ex">42</span></a></code></pre></div>
+<p>Hooray!</p>
+<h2 id="the-compiler">The “Compiler”</h2>
+<p>Recall, that compilers were invented to <a href="01-introduction.md/#a-bit-of-history">avoid writing assembly by hand</a></p>
+<h3 id="first-step-types">First Step: Types</h3>
+<p>To go from source to assembly, we must do:</p>
+<figure>
+<img src="../static/img/simplified-pipeline-short.png" alt="Simplified Pipeline" /><figcaption>Simplified Pipeline</figcaption>
+</figure>
+<p>Our first step will be to <strong>model</strong> the problem domain using <strong>types</strong>.</p>
+<figure>
+<img src="../static/img/simplified-pipeline-short-types.png" alt="Simplified Pipeline with Types" /><figcaption>Simplified Pipeline with Types</figcaption>
+</figure>
+<p>Lets create types that represent each intermediate value:</p>
+<ul>
+<li><code>Text</code> for the raw input source</li>
+<li><code>Expr</code> for the AST</li>
+<li><code>Asm</code> for the output x86 assembly</li>
+</ul>
+<h3 id="defining-the-types-text">Defining the Types: <code>Text</code></h3>
+<p><code>Text</code> is raw strings, i.e. sequences of characters</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb7-1" title="1"><span class="ot">texts ::</span> [<span class="dt">Text</span>]</a>
+<a class="sourceLine" id="cb7-2" title="2">texts <span class="fu">=</span>  </a>
+<a class="sourceLine" id="cb7-3" title="3">  [ <span class="st">&quot;It was a dark and stormy night...&quot;</span></a>
+<a class="sourceLine" id="cb7-4" title="4">  , <span class="st">&quot;I wanna hold your hand...&quot;</span></a>
+<a class="sourceLine" id="cb7-5" title="5">  , <span class="st">&quot;12&quot;</span></a>
+<a class="sourceLine" id="cb7-6" title="6">  ]</a></code></pre></div>
+<h3 id="defining-the-types-expr">Defining the Types: <code>Expr</code></h3>
+<p>We convert the <code>Text</code> into a tree-structure defined by the datatype</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">data</span> <span class="dt">Expr</span> <span class="fu">=</span> <span class="dt">Number</span> <span class="dt">Int</span></a></code></pre></div>
+<p><strong>Note:</strong> As we add features to our language, we will keep adding cases to <code>Expr</code>.</p>
+<h3 id="defining-the-types-asm">Defining the Types: <code>Asm</code></h3>
+<p>Lets also do this <em>gradually</em> as <a href="http://www.felixcloutier.com/x86/">the x86 instruction set is HUGE!</a></p>
+<p>Recall, we need to represent</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode asm"><code class="sourceCode fasm"><a class="sourceLine" id="cb9-1" title="1"><span class="bu">section</span> .text</a>
+<a class="sourceLine" id="cb9-2" title="2">global our_code_label</a>
+<a class="sourceLine" id="cb9-3" title="3"><span class="fu">our_code_label:</span></a>
+<a class="sourceLine" id="cb9-4" title="4">  <span class="bu">mov</span> <span class="kw">eax</span>, <span class="dv">42</span></a>
+<a class="sourceLine" id="cb9-5" title="5">  <span class="bu">ret</span></a></code></pre></div>
+<p>An <code>Asm</code> program is a <strong>list of instructions</strong> each of which can:</p>
+<ul>
+<li>Create a <code>Label</code>, or</li>
+<li>Move a <code>Arg</code> into a <code>Register</code></li>
+<li><code>Return</code> back to the run-time.</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">type</span> <span class="dt">Asm</span> <span class="fu">=</span> [<span class="dt">Instruction</span>]</a>
+<a class="sourceLine" id="cb10-2" title="2"></a>
+<a class="sourceLine" id="cb10-3" title="3"><span class="kw">data</span> <span class="dt">Instruction</span></a>
+<a class="sourceLine" id="cb10-4" title="4">  <span class="fu">=</span> <span class="dt">ILabel</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb10-5" title="5">  <span class="fu">|</span> <span class="dt">IMov</span>   <span class="dt">Arg</span> <span class="dt">Arg</span></a>
+<a class="sourceLine" id="cb10-6" title="6">  <span class="fu">|</span> <span class="dt">IRet</span></a></code></pre></div>
+<p>Where we have</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">data</span> <span class="dt">Register</span></a>
+<a class="sourceLine" id="cb11-2" title="2">  <span class="fu">=</span> <span class="dt">EAX</span></a>
+<a class="sourceLine" id="cb11-3" title="3"></a>
+<a class="sourceLine" id="cb11-4" title="4"><span class="kw">data</span> <span class="dt">Arg</span></a>
+<a class="sourceLine" id="cb11-5" title="5">  <span class="fu">=</span> <span class="dt">Const</span> <span class="dt">Int</span>       <span class="co">-- a fixed number</span></a>
+<a class="sourceLine" id="cb11-6" title="6">  <span class="fu">|</span> <span class="dt">Reg</span>   <span class="dt">Register</span>  <span class="co">-- a register</span></a></code></pre></div>
+<h3 id="second-step-transforms">Second Step: Transforms</h3>
+<p>Ok, now we just need to write the functions:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb12-1" title="1"><span class="ot">parse   ::</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> <span class="dt">Expr</span>     <span class="co">-- 1. Transform source-string into AST</span></a>
+<a class="sourceLine" id="cb12-2" title="2"><span class="ot">compile ::</span> <span class="dt">Expr</span> <span class="ot">-&gt;</span> <span class="dt">Asm</span>      <span class="co">-- 2. Transform AST into assembly</span></a>
+<a class="sourceLine" id="cb12-3" title="3"><span class="ot">asm     ::</span> <span class="dt">Asm</span>  <span class="ot">-&gt;</span> <span class="dt">Text</span>     <span class="co">-- 3. Transform assembly into output-string</span></a></code></pre></div>
+<p>Pretty straightforward:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb13-1" title="1"><span class="ot">parse ::</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> <span class="dt">Expr</span></a>
+<a class="sourceLine" id="cb13-2" title="2">parse    <span class="fu">=</span> parseWith expr</a>
+<a class="sourceLine" id="cb13-3" title="3">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb13-4" title="4">    expr <span class="fu">=</span> integer</a>
+<a class="sourceLine" id="cb13-5" title="5"></a>
+<a class="sourceLine" id="cb13-6" title="6"><span class="ot">compile ::</span> <span class="dt">Expr</span> <span class="ot">-&gt;</span> <span class="dt">Asm</span></a>
+<a class="sourceLine" id="cb13-7" title="7">compile (<span class="dt">Number</span> n) <span class="fu">=</span></a>
+<a class="sourceLine" id="cb13-8" title="8">  [ <span class="dt">IMov</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> n)</a>
+<a class="sourceLine" id="cb13-9" title="9">  , <span class="dt">IRet</span></a>
+<a class="sourceLine" id="cb13-10" title="10">  ]</a>
+<a class="sourceLine" id="cb13-11" title="11"></a>
+<a class="sourceLine" id="cb13-12" title="12"><span class="ot">asm ::</span> <span class="dt">Asm</span> <span class="ot">-&gt;</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb13-13" title="13">asm is <span class="fu">=</span> L.intercalate <span class="st">&quot;\n&quot;</span> [instr i <span class="fu">|</span> i <span class="ot">&lt;-</span> is]</a></code></pre></div>
+<p>Where <code>instr</code> is a <code>Text</code> representation of <em>each</em> <code>Instruction</code></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb14-1" title="1"><span class="ot">instr ::</span> <span class="dt">Instruction</span> <span class="ot">-&gt;</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb14-2" title="2">instr (<span class="dt">IMov</span> a1 a2) <span class="fu">=</span> printf <span class="st">&quot;mov %s, %s&quot;</span> (arg a1) (arg a2)</a>
+<a class="sourceLine" id="cb14-3" title="3"></a>
+<a class="sourceLine" id="cb14-4" title="4"><span class="ot">arg ::</span> <span class="dt">Arg</span> <span class="ot">-&gt;</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb14-5" title="5">arg (<span class="dt">Const</span> n) <span class="fu">=</span> printf <span class="st">&quot;%d&quot;</span> n</a>
+<a class="sourceLine" id="cb14-6" title="6">arg (<span class="dt">Reg</span> r)   <span class="fu">=</span> reg r</a>
+<a class="sourceLine" id="cb14-7" title="7"></a>
+<a class="sourceLine" id="cb14-8" title="8"><span class="ot">reg ::</span> <span class="dt">Register</span> <span class="ot">-&gt;</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb14-9" title="9">reg <span class="dt">EAX</span> <span class="fu">=</span> <span class="st">&quot;eax&quot;</span></a></code></pre></div>
+<h3 id="brief-digression-typeclasses">Brief digression: Typeclasses</h3>
+<p>Note that above we have <em>four</em> separate functions that crunch different types to the <code>Text</code> representation of x86 assembly:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb15-1" title="1"><span class="ot">asm   ::</span> <span class="dt">Asm</span> <span class="ot">-&gt;</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb15-2" title="2"><span class="ot">instr ::</span> <span class="dt">Instruction</span> <span class="ot">-&gt;</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb15-3" title="3"><span class="ot">arg   ::</span> <span class="dt">Arg</span> <span class="ot">-&gt;</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb15-4" title="4"><span class="ot">reg   ::</span> <span class="dt">Register</span> <span class="ot">-&gt;</span> <span class="dt">Text</span></a></code></pre></div>
+<p>Remembering names is <em>hard</em>.</p>
+<p>We can write an <strong>overloaded</strong> function, and let the compiler figure out the correct implementation from the type, using <strong>Typeclasses</strong>.</p>
+<p>The following defines an <em>interface</em> for all those types <code>a</code> that can be converted to x86 assembly:</p>
+<pre><code>class ToX86 a where
+  asm :: a -&gt; Text</code></pre>
+<p>Now, to overload, we say that each of the types <code>Asm</code>, <code>Instruction</code>, <code>Arg</code> and <code>Register</code> <em>implements</em> or <strong>has an instance of</strong> <code>ToX86</code></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">instance</span> <span class="dt">ToX86</span> <span class="dt">Asm</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb17-2" title="2">  asm is <span class="fu">=</span> L.intercalate <span class="st">&quot;\n&quot;</span> [asm i <span class="fu">|</span> i <span class="ot">&lt;-</span> is]</a>
+<a class="sourceLine" id="cb17-3" title="3"></a>
+<a class="sourceLine" id="cb17-4" title="4"><span class="kw">instance</span> <span class="dt">ToX86</span> <span class="dt">Instruction</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb17-5" title="5">  asm (<span class="dt">IMov</span> a1 a2) <span class="fu">=</span> printf <span class="st">&quot;mov %s, %s&quot;</span> (asm a1) (asm a2)</a>
+<a class="sourceLine" id="cb17-6" title="6"></a>
+<a class="sourceLine" id="cb17-7" title="7"><span class="kw">instance</span> <span class="dt">ToX86</span> <span class="dt">Arg</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb17-8" title="8">  asm (<span class="dt">Const</span> n) <span class="fu">=</span> printf <span class="st">&quot;%d&quot;</span> n</a>
+<a class="sourceLine" id="cb17-9" title="9">  arg (<span class="dt">Reg</span> r)   <span class="fu">=</span> asm r</a>
+<a class="sourceLine" id="cb17-10" title="10"></a>
+<a class="sourceLine" id="cb17-11" title="11"><span class="kw">instance</span> <span class="dt">ToX86</span> <span class="dt">Register</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb17-12" title="12">  asm <span class="dt">EAX</span> <span class="fu">=</span> <span class="st">&quot;eax&quot;</span></a></code></pre></div>
+<p><strong>Note</strong> in each case above, the compiler figures out the <em>correct</em> implementation, from the types…</p>
+<h1 id="adder-2">Adder-2</h1>
+<p>Well that was easy! Lets beef up the language!</p>
+<ol start="2" type="1">
+<li>Numbers + Increment</li>
+</ol>
+<ul>
+<li>e.g. <code>add1(7)</code>, <code>add1(add1(12))</code>, …</li>
+</ul>
+<h2 id="repeat-our-recipe">Repeat our Recipe</h2>
+<ol type="1">
+<li>Build intuition with <strong>examples</strong>,</li>
+<li>Model problem with <strong>types</strong>,</li>
+<li>Implement compiler via <strong>type-transforming-functions</strong>,</li>
+<li>Validate compiler via <strong>tests</strong>.</li>
+</ol>
+<h2 id="examples">1. Examples</h2>
+<p>First, lets look at some examples.</p>
+<h3 id="example-1">Example 1</h3>
+<p>How should we compile?</p>
+<pre><code>add1(7)</code></pre>
+<p>In English</p>
+<ol type="1">
+<li>Move <code>7</code> into the <code>eax</code> register</li>
+<li>Add <code>1</code> to the contents of <code>eax</code></li>
+</ol>
+<p>In ASM</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode asm"><code class="sourceCode fasm"><a class="sourceLine" id="cb19-1" title="1"><span class="bu">mov</span> <span class="kw">eax</span>, <span class="dv">7</span></a>
+<a class="sourceLine" id="cb19-2" title="2"><span class="bu">add</span> <span class="kw">eax</span>, <span class="dv">1</span>    </a></code></pre></div>
+<p>Aha, note that <code>add</code> is a new kind of <code>Instruction</code></p>
+<h3 id="example-2">Example 2</h3>
+<p>How should we compile</p>
+<pre><code>add1(add1(12))</code></pre>
+<p>In English</p>
+<ol type="1">
+<li>Move <code>12</code> into the <code>eax</code> register</li>
+<li>Add <code>1</code> to the contents of <code>eax</code></li>
+<li>Add <code>1</code> to the contents of <code>eax</code></li>
+</ol>
+<p>In ASM</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode asm"><code class="sourceCode fasm"><a class="sourceLine" id="cb21-1" title="1"><span class="bu">mov</span> <span class="kw">eax</span>, <span class="dv">12</span></a>
+<a class="sourceLine" id="cb21-2" title="2"><span class="bu">add</span> <span class="kw">eax</span>, <span class="dv">1</span></a>
+<a class="sourceLine" id="cb21-3" title="3"><span class="bu">add</span> <span class="kw">eax</span>, <span class="dv">1</span></a></code></pre></div>
+<h3 id="compositional-code-generation">Compositional Code Generation</h3>
+<p>Note correspondence between sub-expressions of <em>source</em> and <em>assembly</em></p>
+<figure>
+<img src="../static/img/compositional-compilation.png" alt="Compositional Compilation" /><figcaption>Compositional Compilation</figcaption>
+</figure>
+<p>We will write compiler in <strong>compositional</strong> manner</p>
+<ul>
+<li>Generating <code>Asm</code> for each <em>sub-expression</em> (AST subtree) independently,</li>
+<li>Generating <code>Asm</code> for <em>super-expression</em>, assuming the value of sub-expression is in <code>EAX</code></li>
+</ul>
+<h2 id="types">2. Types</h2>
+<p>Next, lets extend the types to incorporate new language features</p>
+<h3 id="extend-type-for-source-and-assembly">Extend Type for Source and Assembly</h3>
+<p>Source Expressions</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb22-1" title="1"><span class="kw">data</span> <span class="dt">Expr</span> <span class="fu">=</span> <span class="fu">...</span></a>
+<a class="sourceLine" id="cb22-2" title="2">          <span class="fu">|</span> <span class="dt">Add1</span>   <span class="dt">Expr</span></a></code></pre></div>
+<p>Assembly Instructions</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb23-1" title="1"><span class="kw">data</span> <span class="dt">Instruction</span></a>
+<a class="sourceLine" id="cb23-2" title="2">  <span class="fu">=</span> <span class="fu">...</span></a>
+<a class="sourceLine" id="cb23-3" title="3">  <span class="fu">|</span> <span class="dt">IAdd</span>  <span class="dt">Arg</span> <span class="dt">Arg</span></a></code></pre></div>
+<h3 id="examples-revisited">Examples Revisited</h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb24-1" title="1">src1 <span class="fu">=</span> <span class="st">&quot;add1(7)&quot;</span></a>
+<a class="sourceLine" id="cb24-2" title="2"></a>
+<a class="sourceLine" id="cb24-3" title="3">exp1 <span class="fu">=</span> <span class="dt">Add1</span> (<span class="dt">Number</span> <span class="dv">7</span>)</a>
+<a class="sourceLine" id="cb24-4" title="4"></a>
+<a class="sourceLine" id="cb24-5" title="5">asm1 <span class="fu">=</span> [ <span class="dt">IMov</span> (<span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">7</span>)</a>
+<a class="sourceLine" id="cb24-6" title="6">       , <span class="dt">IAdd</span> (<span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb24-7" title="7">       ]</a></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb25-1" title="1">src2 <span class="fu">=</span> <span class="st">&quot;add1(add1(12))&quot;</span></a>
+<a class="sourceLine" id="cb25-2" title="2"></a>
+<a class="sourceLine" id="cb25-3" title="3">exp2 <span class="fu">=</span> <span class="dt">Add1</span> (<span class="dt">Add1</span> (<span class="dt">Number</span> <span class="dv">12</span>))</a>
+<a class="sourceLine" id="cb25-4" title="4"></a>
+<a class="sourceLine" id="cb25-5" title="5">asm2 <span class="fu">=</span> [ <span class="dt">IMov</span> (<span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">7</span>)</a>
+<a class="sourceLine" id="cb25-6" title="6">       , <span class="dt">IAdd</span> (<span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb25-7" title="7">       ]</a></code></pre></div>
+<h2 id="transforms">3. Transforms</h2>
+<p>Now lets go back and suitably extend the transforms:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb26-1" title="1"><span class="ot">parse   ::</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> <span class="dt">Expr</span>     <span class="co">-- 1. Transform source-string into AST</span></a>
+<a class="sourceLine" id="cb26-2" title="2"><span class="ot">compile ::</span> <span class="dt">Expr</span> <span class="ot">-&gt;</span> <span class="dt">Asm</span>      <span class="co">-- 2. Transform AST into assembly</span></a>
+<a class="sourceLine" id="cb26-3" title="3"><span class="ot">asm     ::</span> <span class="dt">Asm</span>  <span class="ot">-&gt;</span> <span class="dt">Text</span>     <span class="co">-- 3. Transform assembly into output-string</span></a></code></pre></div>
+<p>Lets do the easy bits first, namely <code>parse</code> and <code>asm</code></p>
+<h3 id="parse">Parse</h3>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb27-1" title="1"><span class="ot">parse ::</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> <span class="dt">Expr</span></a>
+<a class="sourceLine" id="cb27-2" title="2">parse    <span class="fu">=</span> parseWith expr</a>
+<a class="sourceLine" id="cb27-3" title="3"></a>
+<a class="sourceLine" id="cb27-4" title="4"><span class="ot">expr ::</span> <span class="dt">Parser</span> <span class="dt">Expr</span></a>
+<a class="sourceLine" id="cb27-5" title="5">expr <span class="fu">=</span>  try primExpr</a>
+<a class="sourceLine" id="cb27-6" title="6">    <span class="fu">&lt;|&gt;</span> integer  </a>
+<a class="sourceLine" id="cb27-7" title="7"></a>
+<a class="sourceLine" id="cb27-8" title="8"><span class="ot">primExpr ::</span> <span class="dt">Parser</span> <span class="dt">Expr</span></a>
+<a class="sourceLine" id="cb27-9" title="9">primExpr <span class="fu">=</span> <span class="dt">Add1</span> <span class="fu">&lt;$&gt;</span> rWord <span class="st">&quot;add1&quot;</span> <span class="fu">*&gt;</span> parens expr</a></code></pre></div>
+<h3 id="asm">Asm</h3>
+<p>To update <code>asm</code> just need to handle case for <code>IAdd</code></p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb28-1" title="1"><span class="kw">instance</span> <span class="dt">ToX86</span> <span class="dt">Instruction</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb28-2" title="2">  asm (<span class="dt">IMov</span> a1 a2) <span class="fu">=</span> printf <span class="st">&quot;mov %s, %s&quot;</span> (asm a1) (asm a2)</a>
+<a class="sourceLine" id="cb28-3" title="3">  asm (<span class="dt">IAdd</span> a1 a2) <span class="fu">=</span> printf <span class="st">&quot;add %s, %s&quot;</span> (asm a1) (asm a2)</a></code></pre></div>
+<p><strong>Note</strong></p>
+<ol type="1">
+<li>GHC will <em>tell</em> you exactly which functions need to be extended (Types, FTW!)</li>
+<li>We will not discuss <code>parse</code> and <code>asm</code> any more…</li>
+</ol>
+<h3 id="compile">Compile</h3>
+<p>Finally, the key step is</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb29-1" title="1"><span class="ot">compile ::</span> <span class="dt">Expr</span> <span class="ot">-&gt;</span> <span class="dt">Asm</span></a>
+<a class="sourceLine" id="cb29-2" title="2">compile (<span class="dt">Number</span> n)</a>
+<a class="sourceLine" id="cb29-3" title="3">  <span class="fu">=</span> [ <span class="dt">IMov</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> n)</a>
+<a class="sourceLine" id="cb29-4" title="4">    , <span class="dt">IRet</span></a>
+<a class="sourceLine" id="cb29-5" title="5">    ]</a>
+<a class="sourceLine" id="cb29-6" title="6">compile (<span class="dt">Add1</span> e)</a>
+<a class="sourceLine" id="cb29-7" title="7">  <span class="fu">=</span> compile e                    <span class="co">-- EAX holds value of result of `e` ...</span></a>
+<a class="sourceLine" id="cb29-8" title="8"> <span class="fu">++</span> [ <span class="dt">IAdd</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">1</span>) ] <span class="co">-- ... so just increment it.</span></a></code></pre></div>
+<h3 id="examples-revisited-1">Examples Revisited</h3>
+<p>Lets check that compile behaves as desired:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb30-1" title="1"></a>
+<a class="sourceLine" id="cb30-2" title="2">ghci<span class="fu">&gt;</span> (compile (<span class="dt">Number</span> <span class="dv">12</span>)</a>
+<a class="sourceLine" id="cb30-3" title="3">[ <span class="dt">IMov</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">12</span>) ]</a>
+<a class="sourceLine" id="cb30-4" title="4"></a>
+<a class="sourceLine" id="cb30-5" title="5">ghci<span class="fu">&gt;</span> compile (<span class="dt">Add1</span> (<span class="dt">Number</span> <span class="dv">12</span>))</a>
+<a class="sourceLine" id="cb30-6" title="6">[ <span class="dt">IMov</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">12</span>)</a>
+<a class="sourceLine" id="cb30-7" title="7">, <span class="dt">IAdd</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb30-8" title="8">]</a>
+<a class="sourceLine" id="cb30-9" title="9"></a>
+<a class="sourceLine" id="cb30-10" title="10">ghci<span class="fu">&gt;</span> compile (<span class="dt">Add1</span> (<span class="dt">Add1</span> (<span class="dt">Number</span> <span class="dv">12</span>)))</a>
+<a class="sourceLine" id="cb30-11" title="11">[ <span class="dt">IMov</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">12</span>)</a>
+<a class="sourceLine" id="cb30-12" title="12">, <span class="dt">IAdd</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb30-13" title="13">, <span class="dt">IAdd</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">Const</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb30-14" title="14">]</a></code></pre></div>
+<h1 id="adder-3">Adder-3</h1>
+<p>You do it!</p>
+<ol start="3" type="1">
+<li>Numbers + Increment + Double</li>
+</ol>
+<ul>
+<li>e.g. <code>add1(7)</code>, <code>twice(add1(12))</code>, <code>twice(twice(add1(42)))</code></li>
+</ul>
+<h1 id="adder-4">Adder-4</h1>
+<ol start="4" type="1">
+<li>Numbers + Increment + Decrement + Local Variables</li>
+</ol>
+<ul>
+<li>e.g. <code>let x = add1(7), y = add1(x) in add1(y)</code></li>
+</ul>
+<h2 id="local-variables">Local Variables</h2>
+<p>Local variables make things more interesting</p>
+<h2 id="repeat-our-recipe-1">Repeat our Recipe</h2>
+<ol type="1">
+<li>Build intuition with <strong>examples</strong>,</li>
+<li>Model problem with <strong>types</strong>,</li>
+<li>Implement compiler via <strong>type-transforming-functions</strong>,</li>
+<li>Validate compiler via <strong>tests</strong>.</li>
+</ol>
+<h2 id="step-1-examples">Step 1: Examples</h2>
+<p>Lets look at some examples</p>
+<h3 id="example-let1">Example: let1</h3>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb31-1" title="1"><span class="kw">let</span> x <span class="fu">=</span> <span class="dv">10</span></a>
+<a class="sourceLine" id="cb31-2" title="2"><span class="kw">in</span></a>
+<a class="sourceLine" id="cb31-3" title="3">    x</a></code></pre></div>
+<p>Need to store 1 variable – <code>x</code></p>
+<h3 id="example-let2">Example: let2</h3>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb32-1" title="1"><span class="kw">let</span> x <span class="fu">=</span> <span class="dv">10</span>         <span class="co">-- x = 10</span></a>
+<a class="sourceLine" id="cb32-2" title="2">  , y <span class="fu">=</span> add1(x)    <span class="co">-- y = 11</span></a>
+<a class="sourceLine" id="cb32-3" title="3">  , z <span class="fu">=</span> add1(y)    <span class="co">-- z = 12</span></a>
+<a class="sourceLine" id="cb32-4" title="4"><span class="kw">in</span></a>
+<a class="sourceLine" id="cb32-5" title="5">    add1(z)        <span class="co">-- 13</span></a></code></pre></div>
+<p>Need to store 3 variable – <code>x, y, z</code></p>
+<h3 id="example-let3">Example: let3</h3>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb33-1" title="1"><span class="kw">let</span> a <span class="fu">=</span> <span class="dv">10</span></a>
+<a class="sourceLine" id="cb33-2" title="2">  , c <span class="fu">=</span> <span class="kw">let</span> b <span class="fu">=</span> add1(a)</a>
+<a class="sourceLine" id="cb33-3" title="3">        <span class="kw">in</span></a>
+<a class="sourceLine" id="cb33-4" title="4">           add1(b)</a>
+<a class="sourceLine" id="cb33-5" title="5"><span class="kw">in</span></a>
+<a class="sourceLine" id="cb33-6" title="6">    add1(c)</a></code></pre></div>
+<p>Need to store 3 variables – <code>a</code>, <code>b</code>, <code>c</code> – but at most 2 at a time</p>
+<ul>
+<li>First <code>a, b</code>, then <code>a, c</code></li>
+<li>Don’t need <code>b</code> and <code>c</code> simultaneously</li>
+</ul>
+<h3 id="registers-are-not-enough">Registers are Not Enough</h3>
+<p>A single register <code>eax</code> is useless:</p>
+<ul>
+<li>May need 2 or 3 or 4 or 5 … values.</li>
+</ul>
+<p>There is only a <em>fixed</em> number (say, <code>N</code>) of registers:</p>
+<ul>
+<li>And our programs may need to store more than <code>N</code> values, so</li>
+<li>Need to dig for more storage space!</li>
+</ul>
+<h3 id="memory-code-globals-heap-and-stack">Memory: Code, Globals, Heap and Stack</h3>
+<p>Here’s what the memory – i.e. storage – looks like:</p>
+<figure>
+<img src="../static/img/memory-layout.png" alt="Memory Layout" /><figcaption>Memory Layout</figcaption>
+</figure>
+<h3 id="focusing-on-the-stack">Focusing on “The Stack”</h3>
+<p>Lets zoom into the stack region, which when we start looks like this:</p>
+<figure>
+<img src="../static/img/stack-layout.png" alt="Stack Layout" /><figcaption>Stack Layout</figcaption>
+</figure>
+<p>The stack <strong>grows downward</strong> (i.e. to <strong>smaller</strong> addresses)</p>
+<p>We have lots of 4-byte slots on the stack at offsets from the “stack pointer” at addresses:</p>
+<ul>
+<li><code>[EBP - 4 * 1]</code>, <code>[EBP - 4 * 2]</code>, …,</li>
+</ul>
+<h3 id="how-to-compute-mapping-from-variables-to-slots">How to compute mapping from <em>variables</em> to <em>slots</em> ?</h3>
+<p>The <code>i</code>-th <em>stack-variable</em> lives at address <code>[EBP - 4 * i]</code></p>
+<p><strong>Required</strong> A mapping</p>
+<ul>
+<li>From <em>source variables</em> (<code>x</code>, <code>y</code>, <code>z</code> …)</li>
+<li>To <em>stack positions</em> (<code>1</code>, <code>2</code>, <code>3</code> …)</li>
+</ul>
+<p><strong>Solution</strong> The structure of the <code>let</code>s is stack-like too…</p>
+<ul>
+<li>Maintain an <code>Env</code> that maps <code>Id |-&gt; StackPosition</code></li>
+<li><code>let x = e1 in e2</code> adds <code>x |-&gt; i</code> to <code>Env</code>
+<ul>
+<li>where <code>i</code> is current height of stack.</li>
+</ul></li>
+</ul>
+<h3 id="example-let-bindings-and-stacks">Example: Let-bindings and Stacks</h3>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb34-1" title="1"><span class="kw">let</span> x <span class="fu">=</span> <span class="dv">1</span>           <span class="co">-- []</span></a>
+<a class="sourceLine" id="cb34-2" title="2"><span class="kw">in</span>                  <span class="co">-- [ x |-&gt; 1 ]</span></a>
+<a class="sourceLine" id="cb34-3" title="3">    x</a></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb35-1" title="1"><span class="kw">let</span> x <span class="fu">=</span> <span class="dv">1</span>           <span class="co">-- []</span></a>
+<a class="sourceLine" id="cb35-2" title="2">  , y <span class="fu">=</span> add1(x)     <span class="co">-- [x |-&gt; 1]</span></a>
+<a class="sourceLine" id="cb35-3" title="3">  , z <span class="fu">=</span> add1(y)     <span class="co">-- [y |-&gt; 2, x |-&gt; 1]</span></a>
+<a class="sourceLine" id="cb35-4" title="4"><span class="kw">in</span></a>
+<a class="sourceLine" id="cb35-5" title="5">    add1(z)         <span class="co">-- [z |- 3, y |-&gt; 2, x |-&gt; 1]</span></a></code></pre></div>
+<h3 id="quiz">QUIZ</h3>
+<p>At what position on the stack do we store variable <code>c</code> ?</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb36-1" title="1">                          <span class="co">-- []</span></a>
+<a class="sourceLine" id="cb36-2" title="2"><span class="kw">let</span> a <span class="fu">=</span> <span class="dv">1</span>                 <span class="co">-- [a |-&gt; 1]</span></a>
+<a class="sourceLine" id="cb36-3" title="3">  , c <span class="fu">=</span>                   <span class="co">-- [a |-&gt; 1]</span></a>
+<a class="sourceLine" id="cb36-4" title="4">        <span class="kw">let</span> b <span class="fu">=</span> add1(a)   <span class="co">--     [b |-&gt; 2, a |-&gt; 1]</span></a>
+<a class="sourceLine" id="cb36-5" title="5">        <span class="kw">in</span> add1(b)        <span class="co">-- [a |-&gt; 1]</span></a>
+<a class="sourceLine" id="cb36-6" title="6">                          <span class="co">-- [c |-&gt; 2, a |-&gt; 1]</span></a>
+<a class="sourceLine" id="cb36-7" title="7"><span class="kw">in</span></a>
+<a class="sourceLine" id="cb36-8" title="8">    add1(c)</a></code></pre></div>
+<p>A. 1 B. 2 C. 3 D. 4 E. not on stack!</p>
+<p><code>haskell                   &quot;ENVIRONMENT&quot;                           -- [] let a = 1                 -- [a |-&gt; 1]   , b = 2                 -- [b |-&gt; 2, a |-&gt; 1]   , c =                   --         let b  = add1(a)  -- [b |-&gt; 3, b -&gt; 2, a |-&gt; 1]         in add1(b)        --                           -- [b |-&gt; 2, a |-&gt; 1] in     add1(b)</code></p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb37-1" title="1">              <span class="co">-- ENV(n)</span></a>
+<a class="sourceLine" id="cb37-2" title="2"><span class="kw">let</span> x <span class="fu">=</span> <span class="dt">STUFF</span> </a>
+<a class="sourceLine" id="cb37-3" title="3">              <span class="co">-- [x |-&gt; n+1, ENV(n)]</span></a>
+<a class="sourceLine" id="cb37-4" title="4"><span class="kw">in</span> <span class="dt">OTHERSTUFF</span> </a>
+<a class="sourceLine" id="cb37-5" title="5">              <span class="co">-- ENV(n)</span></a></code></pre></div>
+<h3 id="strategy">Strategy</h3>
+<p>At each point, we have <code>env</code> that maps (previously defined) <code>Id</code> to <code>StackPosition</code></p>
+<p><strong>Variable Use</strong></p>
+<p>To compile <code>x</code> given <code>env</code></p>
+<ol type="1">
+<li>Move <code>[ebp - 4 * i]</code> into <code>eax</code></li>
+</ol>
+<p>(where <code>env</code> maps <code>x |-&gt; i</code>)</p>
+<p><strong>Variable Definition</strong></p>
+<p>To compile <code>let x = e1 in e2</code> we</p>
+<ol type="1">
+<li>Compile <code>e1</code> using <code>env</code> (i.e. resulting value will be stored in <code>eax</code>)</li>
+<li>Move <code>eax</code> into <code>[ebp - 4 * i]</code></li>
+<li>Compile <code>e2</code> using <code>env'</code></li>
+</ol>
+<p>(where <code>env'</code> be <code>env</code> with <code>x |-&gt; i</code> i.e. push <code>x</code> onto <code>env</code> at position <code>i</code>)</p>
+<h3 id="example-let-bindings-to-asm">Example: Let-bindings to <code>Asm</code></h3>
+<p>Lets see how our strategy works by example:</p>
+<h3 id="example-let1-1">Example: let1</h3>
+<figure>
+<img src="../static/img/let-1-to-asm.png" alt="Convert let1 to Assembly" /><figcaption>Convert let1 to Assembly</figcaption>
+</figure>
+<h3 id="quiz-let2">QUIZ: let2</h3>
+<p>When we compile</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb38-1" title="1"><span class="kw">let</span> x <span class="fu">=</span> <span class="dv">10</span> </a>
+<a class="sourceLine" id="cb38-2" title="2">  , y <span class="fu">=</span> add1(x)</a>
+<a class="sourceLine" id="cb38-3" title="3"><span class="kw">in</span></a>
+<a class="sourceLine" id="cb38-4" title="4">  add1(y)</a></code></pre></div>
+<p>The assembly looks like</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode asm"><code class="sourceCode fasm"><a class="sourceLine" id="cb39-1" title="1"><span class="bu">mov</span> <span class="kw">eax</span>, <span class="dv">10</span>                <span class="co">; LHS of let x = 10</span></a>
+<a class="sourceLine" id="cb39-2" title="2"><span class="bu">mov</span> [<span class="kw">ebp</span> - <span class="dv">4</span>*<span class="dv">1</span>], <span class="kw">eax</span>       <span class="co">; save x on the stack </span></a>
+<a class="sourceLine" id="cb39-3" title="3"><span class="bu">mov</span> <span class="kw">eax</span>, [<span class="kw">ebp</span> - <span class="dv">4</span>*<span class="dv">1</span>]       <span class="co">; LHS of   , y = add1(x) </span></a>
+<a class="sourceLine" id="cb39-4" title="4"><span class="bu">add</span> <span class="kw">eax</span>, <span class="dv">1</span>                 <span class="co">; &quot;&quot; </span></a>
+<a class="sourceLine" id="cb39-5" title="5">???</a>
+<a class="sourceLine" id="cb39-6" title="6"><span class="bu">add</span> <span class="kw">eax</span>, <span class="dv">1</span></a></code></pre></div>
+<p>What .asm instructions shall we fill in for <code>???</code></p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode asm"><code class="sourceCode fasm"><a class="sourceLine" id="cb40-1" title="1"><span class="bu">mov</span> [<span class="kw">ebp</span> - <span class="dv">4</span> * <span class="dv">1</span>], <span class="kw">eax</span>    <span class="co">; A  </span></a>
+<a class="sourceLine" id="cb40-2" title="2"><span class="bu">mov</span> <span class="kw">eax</span>, [<span class="kw">ebp</span> - <span class="dv">4</span> * <span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb40-3" title="3"></a>
+<a class="sourceLine" id="cb40-4" title="4"><span class="bu">mov</span> [<span class="kw">ebp</span> - <span class="dv">4</span> * <span class="dv">1</span>], <span class="kw">eax</span>    <span class="co">; B  </span></a>
+<a class="sourceLine" id="cb40-5" title="5"></a>
+<a class="sourceLine" id="cb40-6" title="6"><span class="bu">mov</span> [<span class="kw">ebp</span> - <span class="dv">4</span> * <span class="dv">2</span>], <span class="kw">eax</span>    <span class="co">; C  </span></a>
+<a class="sourceLine" id="cb40-7" title="7"></a>
+<a class="sourceLine" id="cb40-8" title="8"><span class="bu">mov</span> [<span class="kw">ebp</span> - <span class="dv">4</span> * <span class="dv">2</span>], <span class="kw">eax</span>    <span class="co">; D  </span></a>
+<a class="sourceLine" id="cb40-9" title="9"><span class="bu">mov</span> <span class="kw">eax</span>, [<span class="kw">ebp</span> - <span class="dv">4</span> * <span class="dv">2</span>]</a>
+<a class="sourceLine" id="cb40-10" title="10"></a>
+<a class="sourceLine" id="cb40-11" title="11">                          <span class="co">; E  (empty! no instructions)</span></a></code></pre></div>
+<!-- ![Convert let2 to Assembly](/static/img/let-2-to-asm.png) -->
+<h3 id="example-let3-1">Example: let3</h3>
+<p>Lets compile</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb41-1" title="1"><span class="kw">let</span> a <span class="fu">=</span> <span class="dv">10</span> </a>
+<a class="sourceLine" id="cb41-2" title="2">  , c <span class="fu">=</span> <span class="kw">let</span> b <span class="fu">=</span> add1(a)</a>
+<a class="sourceLine" id="cb41-3" title="3">        <span class="kw">in</span> </a>
+<a class="sourceLine" id="cb41-4" title="4">            add1(b)</a>
+<a class="sourceLine" id="cb41-5" title="5"><span class="kw">in</span></a>
+<a class="sourceLine" id="cb41-6" title="6">    add1(c)</a></code></pre></div>
+<p>Lets figure out what the assembly looks like!</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode asm"><code class="sourceCode fasm"><a class="sourceLine" id="cb42-1" title="1"><span class="bu">mov</span> <span class="kw">eax</span>, <span class="dv">10</span>                <span class="co">; LHS of let a = 10</span></a>
+<a class="sourceLine" id="cb42-2" title="2"><span class="bu">mov</span> [<span class="kw">ebp</span> - <span class="dv">4</span>*<span class="dv">1</span>], <span class="kw">eax</span>       <span class="co">; save a on the stack </span></a>
+<a class="sourceLine" id="cb42-3" title="3">??? </a></code></pre></div>
+<!-- ![Convert let3 to Assembly](/static/img/let-3-to-asm.png) -->
+<h2 id="step-2-types">Step 2: Types</h2>
+<p>Now, we’re ready to move to the implementation!</p>
+<p>Lets extend the types for <em>Source Expressions</em></p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb43-1" title="1"><span class="kw">type</span> <span class="dt">Id</span>   <span class="fu">=</span> <span class="dt">Text</span></a>
+<a class="sourceLine" id="cb43-2" title="2"></a>
+<a class="sourceLine" id="cb43-3" title="3"><span class="kw">data</span> <span class="dt">Expr</span> <span class="fu">=</span> <span class="fu">...</span></a>
+<a class="sourceLine" id="cb43-4" title="4">          <span class="fu">|</span> <span class="dt">Let</span> <span class="dt">Id</span> <span class="dt">Expr</span> <span class="dt">Expr</span>    <span class="co">-- `let x = e1 in e2` modeled as is `Let x e1 e2`</span></a>
+<a class="sourceLine" id="cb43-5" title="5">          <span class="fu">|</span> <span class="dt">Var</span> <span class="dt">Id</span>             </a></code></pre></div>
+<p>Lets enrich the <code>Instruction</code> to include the register-offset <code>[ebp - 4*i]</code></p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb44-1" title="1"><span class="kw">data</span> <span class="dt">Arg</span> <span class="fu">=</span> <span class="fu">...</span></a>
+<a class="sourceLine" id="cb44-2" title="2">         <span class="fu">|</span> <span class="dt">RegOffset</span> <span class="dt">Reg</span> <span class="dt">Int</span>    <span class="co">-- `[ebp - 4*i]` modeled as `RegOffset EBP i`</span></a></code></pre></div>
+<h3 id="environments">Environments</h3>
+<p>Lets create a new <code>Env</code> type to track stack-positions of variables</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb45-1" title="1"><span class="kw">data</span> <span class="dt">Env</span> <span class="fu">=</span> [(<span class="dt">Id</span>, <span class="dt">Int</span>)]</a>
+<a class="sourceLine" id="cb45-2" title="2"></a>
+<a class="sourceLine" id="cb45-3" title="3"><span class="kw">data</span> <span class="dt">Maybe</span> a <span class="fu">=</span> <span class="dt">Nothing</span> <span class="fu">|</span> <span class="dt">Just</span> a</a>
+<a class="sourceLine" id="cb45-4" title="4"></a>
+<a class="sourceLine" id="cb45-5" title="5"><span class="ot">lookupEnv ::</span> <span class="dt">Env</span> <span class="ot">-&gt;</span> <span class="dt">Id</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></a>
+<a class="sourceLine" id="cb45-6" title="6">lookupEnv [] x              <span class="fu">=</span> <span class="dt">Nothing</span> </a>
+<a class="sourceLine" id="cb45-7" title="7">lookupEnv ((y, n) <span class="fu">:</span> rest) x <span class="fu">=</span> <span class="kw">if</span> x <span class="fu">==</span> y </a>
+<a class="sourceLine" id="cb45-8" title="8">                                <span class="kw">then</span> <span class="dt">Just</span> n </a>
+<a class="sourceLine" id="cb45-9" title="9">                                <span class="kw">else</span> lookupEnv rest x </a>
+<a class="sourceLine" id="cb45-10" title="10"></a>
+<a class="sourceLine" id="cb45-11" title="11"><span class="ot">pushEnv   ::</span> <span class="dt">Env</span> <span class="ot">-&gt;</span> <span class="dt">Id</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">Env</span>)</a>
+<a class="sourceLine" id="cb45-12" title="12">pushEnv env x <span class="fu">=</span> (xn , env')</a>
+<a class="sourceLine" id="cb45-13" title="13">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb45-14" title="14">    env'      <span class="fu">=</span> (x, xn) <span class="fu">:</span> env</a>
+<a class="sourceLine" id="cb45-15" title="15">    xn        <span class="fu">=</span> <span class="dv">1</span> <span class="fu">+</span> <span class="fu">length</span> env</a>
+<a class="sourceLine" id="cb45-16" title="16"></a>
+<a class="sourceLine" id="cb45-17" title="17">compile env (<span class="dt">Let</span> x e1 e2) <span class="fu">=</span> </a>
+<a class="sourceLine" id="cb45-18" title="18">  compile env e1</a>
+<a class="sourceLine" id="cb45-19" title="19">  <span class="fu">++</span> <span class="co">-- EAX hold the value of &quot;x&quot;</span></a>
+<a class="sourceLine" id="cb45-20" title="20">  [<span class="dt">IMov</span> (<span class="dt">RegOffset</span> <span class="dt">EBP</span> xn) <span class="dt">EAX</span> ]</a>
+<a class="sourceLine" id="cb45-21" title="21">  <span class="fu">++</span></a>
+<a class="sourceLine" id="cb45-22" title="22">  compile env' e2</a>
+<a class="sourceLine" id="cb45-23" title="23">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb45-24" title="24">    (xn, env') <span class="fu">=</span> pushEnv env x</a>
+<a class="sourceLine" id="cb45-25" title="25"></a>
+<a class="sourceLine" id="cb45-26" title="26">compile env (<span class="dt">Var</span> x) <span class="fu">=</span> [<span class="dt">IMov</span> <span class="dt">EAX</span> (<span class="dt">RegOffset</span> <span class="dt">EBP</span> xn)]</a>
+<a class="sourceLine" id="cb45-27" title="27">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb45-28" title="28">    xn              <span class="fu">=</span> <span class="kw">case</span> lookupEnv env x <span class="kw">of</span></a>
+<a class="sourceLine" id="cb45-29" title="29">                         <span class="dt">Just</span> n <span class="ot">-&gt;</span> n</a>
+<a class="sourceLine" id="cb45-30" title="30">                         <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;variable out of scope&quot;</span></a></code></pre></div>
+<p>API:</p>
+<ul>
+<li><strong>Push</strong> variable onto <code>Env</code> (returning its position),</li>
+<li><strong>Lookup</strong> variable’s position in <code>Env</code></li>
+</ul>
+<div class="sourceCode" id="cb46"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb46-1" title="1"><span class="ot">push ::</span> <span class="dt">Id</span> <span class="ot">-&gt;</span> <span class="dt">Env</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">Env</span>)</a>
+<a class="sourceLine" id="cb46-2" title="2">push x env <span class="fu">=</span> (i, (x, i) <span class="fu">:</span> env)</a>
+<a class="sourceLine" id="cb46-3" title="3">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb46-4" title="4">    i         <span class="fu">=</span> <span class="dv">1</span> <span class="fu">+</span> <span class="fu">length</span> env</a>
+<a class="sourceLine" id="cb46-5" title="5"></a>
+<a class="sourceLine" id="cb46-6" title="6"><span class="fu">lookup</span><span class="ot"> ::</span> <span class="dt">Id</span> <span class="ot">-&gt;</span> <span class="dt">Env</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Int</span></a>
+<a class="sourceLine" id="cb46-7" title="7"><span class="fu">lookup</span> x []             <span class="fu">=</span> <span class="dt">Nothing</span></a>
+<a class="sourceLine" id="cb46-8" title="8"><span class="fu">lookup</span> x ((y, i) <span class="fu">:</span> env)</a>
+<a class="sourceLine" id="cb46-9" title="9">  <span class="fu">|</span> x <span class="fu">==</span> y              <span class="fu">=</span> <span class="dt">Just</span> i</a>
+<a class="sourceLine" id="cb46-10" title="10">  <span class="fu">|</span> <span class="fu">otherwise</span>           <span class="fu">=</span> <span class="fu">lookup</span> x env   </a></code></pre></div>
+<h2 id="step-3-transforms">Step 3: Transforms</h2>
+<p>Ok, now we’re almost done. Just add the code formalizing the <a href="#strategy">above strategy</a></p>
+<h3 id="code">Code</h3>
+<p><strong>Variable Use</strong></p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb47-1" title="1">compileEnv env (<span class="dt">Var</span> x) <span class="fu">=</span> [ <span class="dt">IMov</span> (<span class="dt">Reg</span> <span class="dt">EAX</span>) (<span class="dt">RegOffset</span> <span class="dt">EBP</span> i) ]</a>
+<a class="sourceLine" id="cb47-2" title="2">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb47-3" title="3">    i                  <span class="fu">=</span> fromMaybe err (<span class="fu">lookup</span> x env)</a>
+<a class="sourceLine" id="cb47-4" title="4">    err                <span class="fu">=</span> <span class="fu">error</span> (printf <span class="st">&quot;Error: Variable '%s' is unbound&quot;</span> x)</a></code></pre></div>
+<p><strong>Variable Definition</strong></p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb48-1" title="1">compileEnv env (<span class="dt">Let</span> x e1 e2 l)  <span class="fu">=</span> compileEnv env  e1  </a>
+<a class="sourceLine" id="cb48-2" title="2">                               <span class="fu">++</span> <span class="dt">IMov</span> (<span class="dt">RegOffset</span> <span class="dt">EBP</span> i) (<span class="dt">Reg</span> <span class="dt">EAX</span>)</a>
+<a class="sourceLine" id="cb48-3" title="3">                                <span class="fu">:</span> compileEnv env' e2</a>
+<a class="sourceLine" id="cb48-4" title="4">      <span class="kw">where</span></a>
+<a class="sourceLine" id="cb48-5" title="5">        (i, env')               <span class="fu">=</span> pushEnv x env</a></code></pre></div>
+<h2 id="step-4-tests">Step 4: Tests</h2>
+<p>Lets take our <code>adder</code> compiler out for a spin!</p>
+<h2 id="recap-we-just-wrote-our-first-compilers">Recap: We just wrote our first Compilers</h2>
+<p><code>SourceProgram</code> will be a sequence of four <em>tiny</em> “languages”</p>
+<ol type="1">
+<li>Numbers</li>
+</ol>
+<ul>
+<li>e.g. <code>7</code>, <code>12</code>, <code>42</code> …</li>
+</ul>
+<ol start="2" type="1">
+<li>Numbers + Increment</li>
+</ol>
+<ul>
+<li>e.g. <code>add1(7)</code>, <code>add1(add1(12))</code>, …</li>
+</ul>
+<ol start="3" type="1">
+<li>Numbers + Increment + Decrement</li>
+</ol>
+<ul>
+<li>e.g. <code>add1(7)</code>, <code>add1(add1(12))</code>, <code>sub1(add1(42))</code></li>
+</ul>
+<ol start="4" type="1">
+<li>Numbers + Increment + Decrement + Local Variables</li>
+</ol>
+<ul>
+<li>e.g. <code>let x = add1(7), y = add1(x) in add1(y)</code></li>
+</ul>
+<h3 id="using-a-recipe">Using a Recipe</h3>
+<ol type="1">
+<li>Build intuition with <strong>examples</strong>,</li>
+<li>Model problem with <strong>types</strong>,</li>
+<li>Implement compiler via <strong>type-transforming-functions</strong>,</li>
+<li>Validate compiler via <strong>tests</strong>.</li>
+</ol>
+<p>Will iterate on this till we have a pretty kick-ass language.</p>
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
