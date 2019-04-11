@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>03-adder-quizzes</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">CSE 131</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+		<a href="../calendar.html">Calendar</a>
+                <a href="../grades.html">Grades</a>
+                <a href="../assignments.html">Assignments</a>
+                <a href="../lectures.html">Lectures</a>
+                <a href="../resources.html">Resources</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>03-adder-quizzes</h1>
+
+            <h1 id="lecture-4-prim-ops-vars">Lecture 4 (prim ops + vars)</h1>
+<h2 id="quiz-1">Quiz 1</h2>
+<p>Consider the adder-3 grammar:</p>
+<pre><code>expr ::= &lt;number&gt;
+       | add1(&lt;expr&gt;)
+       | sub1(&lt;expr&gt;)</code></pre>
+<p>Which string is allowed by the grammar?</p>
+<p>A. 1 + 2 B. add1(3, 3) C. add1(add1(4)) D. add1(sub1, 4) E. add1(x)</p>
+<h2 id="quiz-2">Quiz 2</h2>
+<p>Recall the <code>compile</code> function, more or less reproduced below:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1">compile (<span class="dt">Number</span> n _)   <span class="fu">=</span> [ printf <span class="st">&quot;mov eax, %d&quot;</span> n]</a>
+<a class="sourceLine" id="cb2-2" title="2">compile (<span class="dt">Prim1</span> op e _) <span class="fu">=</span> arg_istrs</a>
+<a class="sourceLine" id="cb2-3" title="3">                      <span class="fu">++</span> [ printf <span class="st">&quot;add eax, %d&quot;</span> add]</a>
+<a class="sourceLine" id="cb2-4" title="4">    <span class="kw">where</span></a>
+<a class="sourceLine" id="cb2-5" title="5">      arg_istrs        <span class="fu">=</span> compile e</a>
+<a class="sourceLine" id="cb2-6" title="6">      add              <span class="fu">=</span> <span class="kw">case</span> op <span class="kw">of</span></a>
+<a class="sourceLine" id="cb2-7" title="7">                    <span class="dt">Add1</span> <span class="ot">-&gt;</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb2-8" title="8">                    <span class="dt">Sub1</span> <span class="ot">-&gt;</span> (<span class="fu">-</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb2-9" title="9">                    </a></code></pre></div>
+<p>What is the assembly code generated for</p>
+<p><code>add1(sub1(4))</code></p>
+<ol type="A">
+<li><p>mov eax, 4 add eax, 1 add eax, -1</p></li>
+<li><p>add eax, 1 add eax, -1 mov eax, 4</p></li>
+<li><p>mov eax, 4 add eax, -1 add eax, 1</p></li>
+</ol>
+<h2 id="quiz-3">Quiz 3</h2>
+<p>Consider the adder-4 grammar:</p>
+<pre><code>expr ::= &lt;number&gt;
+       | add1(&lt;expr&gt;)
+       | sub1(&lt;expr&gt;)
+       | let &lt;id&gt; = &lt;expr&gt;  -- value 
+                  in &lt;expr&gt; -- body
+       | &lt;id&gt;</code></pre>
+<p>Which string is allowed by the grammar?</p>
+<p>A. let x = 5, add1(2) B. let x = 5 in add1(x) C. let x = 5 D. let 10 = add(9)</p>
+<h2 id="quiz-4">Quiz 4</h2>
+<p>Which is a reasonable definition for the AST with let?</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">data</span> <span class="dt">Expr</span> <span class="fu">=</span> <span class="dt">Number</span> <span class="dt">Integer</span></a>
+<a class="sourceLine" id="cb4-2" title="2">          <span class="fu">|</span> <span class="dt">Add1</span> <span class="dt">Expr</span></a>
+<a class="sourceLine" id="cb4-3" title="3">          <span class="fu">|</span> <span class="dt">Sub1</span> <span class="dt">Expr</span></a>
+<a class="sourceLine" id="cb4-4" title="4">          <span class="fu">|</span> <span class="co">-- Case goes here</span></a></code></pre></div>
+<p>A. <code>Let Expr Expr Expr</code> B. <code>Let String Expr</code> C. <code>Let String Expr Expr</code> D. <code>Let String Int Expr</code></p>
+<h1 id="quiz-5">Quiz 5</h1>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb5-1" title="1">stackloc i <span class="fu">=</span> i <span class="fu">*</span> <span class="dv">4</span></a>
+<a class="sourceLine" id="cb5-2" title="2"></a>
+<a class="sourceLine" id="cb5-3" title="3"><span class="kw">type</span> <span class="dt">Env</span> <span class="fu">=</span> [(<span class="dt">String</span>, <span class="dt">Int</span>)]</a>
+<a class="sourceLine" id="cb5-4" title="4"></a>
+<a class="sourceLine" id="cb5-5" title="5"><span class="fu">lookup</span> x []          <span class="fu">=</span> <span class="dt">Nothing</span></a>
+<a class="sourceLine" id="cb5-6" title="6"><span class="fu">lookup</span> x ((y,i)<span class="fu">:</span>env) </a>
+<a class="sourceLine" id="cb5-7" title="7">  <span class="fu">|</span> x <span class="fu">==</span> y           <span class="fu">=</span> <span class="dt">Just</span> i</a>
+<a class="sourceLine" id="cb5-8" title="8">  <span class="fu">|</span> <span class="fu">otherwise</span>        <span class="fu">=</span> <span class="fu">lookup</span> x env</a>
+<a class="sourceLine" id="cb5-9" title="9"></a>
+<a class="sourceLine" id="cb5-10" title="10"><span class="co">-- old cases left out</span></a>
+<a class="sourceLine" id="cb5-11" title="11"><span class="co">-- New:</span></a>
+<a class="sourceLine" id="cb5-12" title="12">compile env (<span class="dt">Number</span> n) <span class="fu">=</span> [ printf <span class="st">&quot;mov eax, %d&quot;</span>, n ]</a>
+<a class="sourceLine" id="cb5-13" title="13">compile env (<span class="dt">Id</span> x)   <span class="fu">=</span> [ printf <span class="st">&quot;mov eax, [esp - %d]&quot;</span> pos ]</a>
+<a class="sourceLine" id="cb5-14" title="14">  <span class="kw">where</span> </a>
+<a class="sourceLine" id="cb5-15" title="15">    pos <span class="fu">=</span> <span class="kw">case</span> <span class="fu">lookup</span> x env <span class="kw">of</span></a>
+<a class="sourceLine" id="cb5-16" title="16">            <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Unbound id&quot;</span></a>
+<a class="sourceLine" id="cb5-17" title="17">            <span class="dt">Just</span> i  <span class="ot">-&gt;</span> stackloc i</a></code></pre></div>
+<ol start="2" type="a">
+<li>What instructions do we get from running: <code>compile [(&quot;x&quot;, 1), (&quot;y&quot;, 2)] (Id &quot;z&quot;)</code></li>
+</ol>
+<p>A. mov eax, [esp-4] B. mov eax, [esp-8] C. mov eax, 2 D. mov eax, 8 E. Error - “Unbound Id”</p>
+<ol type="a">
+<li>What instructions do we get from running: <code>compile [(&quot;x&quot;, 1), (&quot;y&quot;, 2), (&quot;z&quot;, 3)] (Id &quot;y&quot;)</code></li>
+</ol>
+<p>A. mov eax, [esp-4] B. mov eax, [esp-8] C. mov eax, 2 D. mov eax, 8 E. Error - “Unbound Id”</p>
+<h2 id="example">Example:</h2>
+<pre><code>let x = 10 in
+  let cat = 3 in
+  let y = add1(x) in
+    let z = add1(y) in
+      z</code></pre>
+<p>should compile to</p>
+<pre><code>mov eax, 10
+mov [esp-4], eax
+;; storing &quot;cat&quot;
+mov eax, 3
+mov [esp-16], eax
+;; now load x
+
+mov eax, [esp-4]
+add eax, 1
+mov [esp-8], eax
+mov eax, [esp-8]
+add eax, 1
+mov [esp-12], eax
+mov eax, [esp-12]</code></pre>
+<p>What should the stack look like?</p>
+<p>Where do the “-4”, “-8” come from?</p>
+<h2 id="example-1">Example:</h2>
+<p>Now let’s map out what the environment looks like in each step:</p>
+<pre><code>let x = 10 in          -- env: [x |-&gt; 1 ]
+  let y = add1(x) in   -- env: [y |-&gt; 2, x |-&gt; 1]
+    let z = add1(y) in -- env: [z |-&gt; 3, y |-&gt; 2, x |-&gt; 1]
+      z</code></pre>
+<h2 id="example-2">Example</h2>
+<pre><code>let a = 10                  -- env [ a |-&gt; 1 ]
+in 
+  let c = let b = add1(a)   -- step into expr for &quot;b&quot;, [ b |-&gt; 2, a |-&gt; 1]
+          in
+             add1(b)        -- env [ c |-&gt; 2, a |-&gt; 1 ]
+  in
+    add1(c)                 -- env [ c |-&gt; 2, a |-&gt; 1 ]</code></pre>
+<p>What does the environment look like at each step? What instructions do we expect?</p>
+<p>What does memory look like after execution?</p>
+<h2 id="exercise">Exercise</h2>
+<p>Can we start to fill in the <code>let</code> case?</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb10-1" title="1">compile env (<span class="dt">Id</span> x)   <span class="fu">=</span> [ printf <span class="st">&quot;mov eax, [esp - %d]&quot;</span> pos ]</a>
+<a class="sourceLine" id="cb10-2" title="2">  <span class="kw">where</span> </a>
+<a class="sourceLine" id="cb10-3" title="3">    pos <span class="fu">=</span> <span class="kw">case</span> <span class="fu">lookup</span> x env <span class="kw">of</span></a>
+<a class="sourceLine" id="cb10-4" title="4">            <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;Unbound id&quot;</span></a>
+<a class="sourceLine" id="cb10-5" title="5">            <span class="dt">Just</span> i  <span class="ot">-&gt;</span> stackloc i</a>
+<a class="sourceLine" id="cb10-6" title="6"></a>
+<a class="sourceLine" id="cb10-7" title="7">compile env (<span class="dt">Let</span> x e1 e2) <span class="fu">=</span> value_instrs</a>
+<a class="sourceLine" id="cb10-8" title="8">                         <span class="fu">++</span> [ printf <span class="st">&quot;mov [esp - %d], eax&quot;</span> offset ]</a>
+<a class="sourceLine" id="cb10-9" title="9">                         <span class="fu">++</span> body_instrs</a>
+<a class="sourceLine" id="cb10-10" title="10">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb10-11" title="11">    value_instrs <span class="fu">=</span> compile env e1</a>
+<a class="sourceLine" id="cb10-12" title="12">    i            <span class="fu">=</span> <span class="fu">length</span> env <span class="fu">+</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb10-13" title="13">    offset       <span class="fu">=</span> stackloc i <span class="co">-- (i * 4)</span></a>
+<a class="sourceLine" id="cb10-14" title="14">                              <span class="co">-- top of the stack ==&gt; declaring a new variable</span></a>
+<a class="sourceLine" id="cb10-15" title="15">    body_instrs  <span class="fu">=</span> compile env' e2</a>
+<a class="sourceLine" id="cb10-16" title="16">    env'         <span class="fu">=</span> <span class="co">-- add the variable to the new environment</span></a>
+<a class="sourceLine" id="cb10-17" title="17">                   ((x, i) <span class="fu">:</span> env)</a></code></pre></div>
+<p>Q: what to replace the ’???’s with</p>
+<p>“shadowing” test case let x = (let x = …)</p>
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
