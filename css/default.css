@@ -8,6 +8,15 @@ body {
     font-weight: 300;
 }
 
+img {
+  display: inline-block;
+  max-width: 100%;
+}
+
+figure {
+  max-width: 800px;
+}
+
 div#header {
     border-bottom: 2px solid black;
     margin-bottom: 30px;
