@@ -31,6 +31,9 @@ The excellent lecture notes are by Ranjit Jhala
 [lec4]: lectures/04-boa.html
 [md4]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/04-boa.md
 
+[lec5]: lectures/05-cobra.html
+[md5]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/05-cobra.md
+
 [lec3b]: lectures/03-adder-quizzes.html
 [md3b]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/03-adder-quizzes.md
 
