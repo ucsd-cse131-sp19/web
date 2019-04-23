@@ -10,7 +10,7 @@ The excellent lecture notes are by Ranjit Jhala
 | 4/2        | Introduction/Haskell            | [intro html][lec1] [intro md][md1] | [haskell html][lec2] [haskell md][md2]           | [code][cod1] [sat][sat]    |
 | 4/9        | Numbers, Unary Ops, Variables      | [adder_html][lec3] [adder_md][md3]   | [adder_quizzes][lec3b] [adder_quizzes_md][md3b]             |                |
 | 4/16       | Branches and Binary Operators      | [boa_html][lec4] [boa_md][md4] |     |                |
-| 4/23       | Data Representation                |                        |             |                |
+| 4/23       | Data Representation                | [cobra_html][lec5] [cobra_md][md5]|             |                |
 | 4/30       | Functions                |                        |             |                |
 | 5/7        | Heap Data    |                        |             |                |
 | 5/14       | Garbage Collection                           |                        |             |                |
