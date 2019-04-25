@@ -509,6 +509,8 @@ and eax, 0x80000000   ; mask out "sign" bit (msb)
 or  eax, 0x00000001   ; set tag bit to bool
 ```
 
+** Question: ** does this handle overflow properly? What else do we need to do?
+
 ### Comparisons: Implementation
 
 Lets go and extend:

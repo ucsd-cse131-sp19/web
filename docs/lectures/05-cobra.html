@@ -537,6 +537,7 @@
 <a class="sourceLine" id="cb23-2" title="2"><span class="kw">sub</span> <span class="kw">eax</span>, arg2</a>
 <a class="sourceLine" id="cb23-3" title="3"><span class="kw">and</span> <span class="kw">eax</span><span class="bn">, 0x80000000   </span><span class="co">; mask out &quot;sign&quot; bit (msb)</span></a>
 <a class="sourceLine" id="cb23-4" title="4"><span class="kw">or</span>  <span class="kw">eax</span><span class="bn">, 0x00000001   </span><span class="co">; set tag bit to bool</span></a></code></pre></div>
+<p>** Question: ** does this handle overflow properly? What else do we need to do?</p>
 <h3 id="comparisons-implementation">Comparisons: Implementation</h3>
 <p>Lets go and extend:</p>
 <ol type="1">
