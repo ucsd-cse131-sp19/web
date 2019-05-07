@@ -11,12 +11,11 @@ The excellent lecture notes are by Ranjit Jhala
 | 4/9        | Numbers, Unary Ops, Variables      | [adder_html][lec3] [adder_md][md3]   | [adder_quizzes][lec3b] [adder_quizzes_md][md3b]             |                |
 | 4/16       | Branches and Binary Operators      | [boa_html][lec4] [boa_md][md4] |     |                |
 | 4/23       | Data Representation                | [cobra_html][lec5] [cobra_md][md5]|             |                |
-| 4/30       | Functions                |                        |             |                |
-| 5/7        | Heap Data    |                        |             |                |
-| 5/14       | Garbage Collection                           |                        |             |                |
-| 5/21       | First-class functions, closures         |                        |             |                |
-| 5/28       | TBD         |                        |             |                |
-| 6/3        | TBD         |                        |             |                |
+| 4/30       | Functions                          | [diamondback_html][lec6] [diamondback_md][md6]|                |
+| 5/14       | Heap Data    |                        |             |                |
+| 5/21       | Garbage Collection                           |                        |             |                |
+| 5/28       | First-class functions, closures         |                        |             |                |
+| 6/3       | TBD         |                        |             |                |
 
 
 [lec1]: lectures/01-introduction.html
@@ -33,6 +32,9 @@ The excellent lecture notes are by Ranjit Jhala
 
 [lec5]: lectures/05-cobra.html
 [md5]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/05-cobra.md
+
+[lec6]: lectures/06-diamond.html
+[md6]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/06-diamond.md
 
 [lec3b]: lectures/03-adder-quizzes.html
 [md3b]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/03-adder-quizzes.md
