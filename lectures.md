@@ -12,7 +12,7 @@ The excellent lecture notes are by Ranjit Jhala
 | 4/16       | Branches and Binary Operators      | [boa_html][lec4] [boa_md][md4] |     |                |
 | 4/23       | Data Representation                | [cobra_html][lec5] [cobra_md][md5]|             |                |
 | 4/30       | Functions                          | [diamondback_html][lec6] [diamondback_md][md6]|                |
-| 5/14       | Heap Data    |                        |             |                |
+| 5/14       | Heap Data           | [egg_html][lec7] [egg_md][md7] |             |                |
 | 5/21       | Garbage Collection                           |                        |             |                |
 | 5/28       | First-class functions, closures         |                        |             |                |
 | 6/3       | TBD         |                        |             |                |
@@ -35,6 +35,9 @@ The excellent lecture notes are by Ranjit Jhala
 
 [lec6]: lectures/06-diamond.html
 [md6]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/06-diamond.md
+
+[lec7]: lectures/07-egg-eater.html
+[md7]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/07-egg-eater.md
 
 [lec3b]: lectures/03-adder-quizzes.html
 [md3b]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/03-adder-quizzes.md
