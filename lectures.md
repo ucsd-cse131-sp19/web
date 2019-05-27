@@ -13,9 +13,9 @@ The excellent lecture notes are by Ranjit Jhala
 | 4/23       | Data Representation                | [cobra_html][lec5] [cobra_md][md5]|             |                |
 | 4/30       | Functions                          | [diamondback_html][lec6] [diamondback_md][md6]|                |
 | 5/14       | Heap Data           | [egg_html][lec7] [egg_md][md7] |             |                |
-| 5/21       | Garbage Collection                           |                        |             |                |
-| 5/28       | First-class functions, closures         |                        |             |                |
-| 6/3       | TBD         |                        |             |                |
+| 5/21       | Garbage Collection                           | [foxpdf]           |             |                |
+| 5/28       | First-class functions, closures         | [closures][closures] [closures_md][closures_md]                        |             |                |
+| 6/3       | TBD + Review         |                        |             |                |
 
 
 [lec1]: lectures/01-introduction.html
@@ -41,6 +41,11 @@ The excellent lecture notes are by Ranjit Jhala
 
 [lec3b]: lectures/03-adder-quizzes.html
 [md3b]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/03-adder-quizzes.md
+
+[foxpdf]: static/img/fox-notes.pdf
+
+[closures]: lectures/08-fer-de-lance.html
+[closures_md]: http://github.com/ucsd-cse131-sp19/web/blob/master/lectures/08-fer-de-lance.md
 
 [cod1]: static/hs/lecture1.hs
 [sat]: static/hs/sat.hs
