@@ -14,6 +14,7 @@ atomic units over the entire quarter. By *atomic* I mean, for example, that
 - [HW #3][hw3-git], due Fri 5/10  by 23:59pm
 - [HW #4][hw4-git], due Fri 5/17  by 23:59pm
 - [HW #5][hw5-git], due Mon 5/27  by 23:59pm
+- [HW #6][hw6-git], due Fri 6/07  by 23:59pm
 
 [hw0-git]: https://github.com/ucsd-cse131-sp19/pa0
 [hw1-git]: https://github.com/ucsd-cse131-sp19/01-adder
@@ -21,3 +22,4 @@ atomic units over the entire quarter. By *atomic* I mean, for example, that
 [hw3-git]: https://github.com/ucsd-cse131-sp19/03-cobra
 [hw4-git]: https://github.com/ucsd-cse131-sp19/04-diamondback
 [hw5-git]: https://github.com/ucsd-cse131-sp19/05-egg-eater
+[hw6-git]: https://github.com/ucsd-cse131-sp19/06-fox
